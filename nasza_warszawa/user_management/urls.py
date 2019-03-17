@@ -1,10 +1,9 @@
-from django.urls import path
-from .views import register, logout
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 
-
-app_name = 'user_management'
+router = DefaultRouter()
+router.register(r'user_management')
 
 urlpatterns = [
-    path('register/', register),
-    path('logout/', logout)
+    path('', include(router.urls)),
 ]
