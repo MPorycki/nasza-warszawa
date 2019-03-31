@@ -16,7 +16,7 @@ class UMAccounts(base):
 class UMSessions(base):
     __tablename__ = 'um_sessions'
 
-    UM_accounts_id = Column(String(length=32),
+    um_accounts_id = Column(String(length=32),
                             ForeignKey(UMAccounts.id, onupdate='CASCADE', ondelete='CASCADE'))
     session_id = Column(String(length=32), primary_key=True)
     created_at = Column(TIMESTAMP)
@@ -25,7 +25,7 @@ class UMSessions(base):
 class UM_sent_messages(base):
     __tablename__ = 'UM_sent_messages'
 
-    UM_accounts_id = Column(String(length=32),
+    um_accounts_id = Column(String(length=32),
                             ForeignKey(UMAccounts.id, onupdate='CASCADE', ondelete='CASCADE'))
     id = Column(String(length=32), primary_key=True)
     message_type = Column(String(length=16))
