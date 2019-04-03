@@ -1,2 +1,3 @@
-"venvnasza/" 
-".idea/" 
+venvnasza/
+.idea/ 
+__pycache__/ 

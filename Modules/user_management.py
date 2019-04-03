@@ -51,4 +51,8 @@ def create_session_for_user(email):
 
 
 def verify_session(session_id):
+    # what is being stored in cookie? because I can check and tell, that this session ID belongs
+    # to a given user, do we want to verify that this user is the one passing the request,
+    # or is just the fact of sending the session ID being enough to login the user to that
+    # given account?
     pass
