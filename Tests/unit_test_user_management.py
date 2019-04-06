@@ -1,10 +1,15 @@
-import pytest
 
 from Models.db import session
 from Models.user_management import UMAccounts
 from Modules.user_management import register_user
 
+"""
+Tests TODO
+1. Checking created_at for registration
+"""
 
+
+# Registration tests
 def test_can_register():
     # GIVEN
     test_email = 'testinek@gmail.com'
@@ -39,8 +44,6 @@ def test_cant_register_again_with_existing_mail():
         session.commit()
 
 
-
-
 def test_password_is_hashed_when_registering():
     # GIVEN
     test_email = 'testinek@gmail.com'
@@ -58,4 +61,6 @@ def test_password_is_hashed_when_registering():
     finally:
         # CLEANUP
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
-        session.commit() # TODO make deletion a method
+        session.commit()  # TODO make deletion a method
+
+

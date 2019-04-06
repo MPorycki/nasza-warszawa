@@ -2,19 +2,11 @@ import uuid
 import datetime
 
 from passlib.hash import sha256_crypt
-from psycopg2 import IntegrityError
+from sqlalchemy.exc import InvalidRequestError, IntegrityError
 
 from Models.user_management import UMAccounts, UM_sent_messages, UMSessions
 from Models.db import session_scope, session
 
-
-def check_password(email, raw_password):
-    encrypted_from_db = str(session.query(UMAccounts.hashed_password).filter(
-        UMAccounts.email == email).first()[0])
-    check = sha256_crypt.verify(raw_password, encrypted_from_db)
-    if check:
-        session_to_return = create_session_for_user(email)
-    return session_to_return
 
 
 def register_user(email, raw_password):
@@ -26,12 +18,21 @@ def register_user(email, raw_password):
     session.add(new_user)
     try:
         session.commit()
-    except Exception as e:
+    except (InvalidRequestError, IntegrityError) as e:
         # Error thrown, when some of the db requirements are not met
         session.rollback()
         return "email_already_in_db"
     # session.close()
     return "registered"
+
+
+def check_password(email, raw_password):
+    encrypted_from_db = str(session.query(UMAccounts.hashed_password).filter(
+        UMAccounts.email == email).first()[0])
+    check = sha256_crypt.verify(raw_password, encrypted_from_db)
+    if check:
+        session_to_return = create_session_for_user(email)
+    return session_to_return
 
 
 def send_recovery_email(email):
@@ -48,6 +49,7 @@ def create_session_for_user(email):
         session.add(new_session)
         session.commit()
     except Exception as e:
+        session.rollback()
         return e
     session.close()
     return session_id
