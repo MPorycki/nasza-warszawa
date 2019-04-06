@@ -1,7 +1,6 @@
-
 from Models.db import session
-from Models.user_management import UMAccounts
-from Modules.user_management import register_user
+from Models.user_management import UMAccounts, UMSessions
+from Modules.user_management import register_user, check_password
 
 """
 Tests TODO
@@ -64,3 +63,23 @@ def test_password_is_hashed_when_registering():
         session.commit()  # TODO make deletion a method
 
 
+def test_check_pass_returns_correct_sessionid():
+    # GIVEN
+    test_email = 'testinek@gmail.com'
+    test_password = '123456789'
+    register_user(test_email, test_password)
+
+    # WHEN
+    test_login = check_password(test_email, test_password)
+
+    # THEN
+    created_user = session.query(UMAccounts).filter(UMAccounts.email == test_email).first()
+    user_id = created_user.id
+    created_session_id = session.query(UMSessions).filter(
+        UMSessions.um_accounts_id == user_id).first().session_id
+    try:
+        assert test_login == created_session_id
+    finally:
+        session.query(UMSessions).filter(UMSessions.session_id == created_session_id).delete()
+        session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
+        session.commit()

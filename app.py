@@ -20,6 +20,7 @@ def main():
 
 class Account(Resource):
     def get(self, user_id=None):
+        # Login
         if user_id is None:
             try:
                 raw_password = request.headers.get('raw_password')
@@ -35,6 +36,7 @@ class Account(Resource):
             pass
 
     def post(self):
+        # Register
         email = request.headers.get('email')
         raw_password = request.headers.get('raw_password')
         registration_result = register_user(email, raw_password)
@@ -43,8 +45,8 @@ class Account(Resource):
         else:
             return make_response(registration_result, 400)
 
-    # Password recovery
     def patch(self):
+        # Password recovery
         email = request.headers.get('email')
         confirmation = send_recovery_email(email)
         return make_response(confirmation, 200)
