@@ -2,6 +2,7 @@ import uuid
 import datetime
 
 from passlib.hash import sha256_crypt
+from psycopg2 import IntegrityError
 
 from Models.user_management import UMAccounts, UM_sent_messages, UMSessions
 from Models.db import session_scope, session
@@ -19,16 +20,18 @@ def check_password(email, raw_password):
 def register_user(email, raw_password):
     created_at = datetime.datetime.now()
     user_id = uuid.uuid4().hex
-    password = sha256_crypt.encrypt(raw_password)
+    password = sha256_crypt.hash(raw_password)
     new_user = UMAccounts(id=user_id, email=email, hashed_password=password,
                           created_at=created_at)
     session.add(new_user)
     try:
         session.commit()
     except Exception as e:
-        return e
-    session.close()
-    return "Resgistration succesful"
+        # Error thrown, when some of the db requirements are not met
+        session.rollback()
+        return "email_already_in_db"
+    # session.close()
+    return "registered"
 
 
 def send_recovery_email(email):
@@ -55,4 +58,9 @@ def verify_session(session_id):
     # to a given user, do we want to verify that this user is the one passing the request,
     # or is just the fact of sending the session ID being enough to login the user to that
     # given account?
+    # need to make this a decorator that checks the authorization header for session_id
+    pass
+
+
+def logout(session_id):
     pass

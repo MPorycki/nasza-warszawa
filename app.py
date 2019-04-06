@@ -38,7 +38,7 @@ class Account(Resource):
         email = request.headers.get('email')
         raw_password = request.headers.get('raw_password')
         registration_result = register_user(email, raw_password)
-        if registration_result == 'Resgistration succesful':
+        if registration_result == 'registered':
             return make_response(registration_result, 200)
         else:
             return make_response(registration_result, 400)
