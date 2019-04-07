@@ -4,7 +4,7 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 
 from Modules.user_management import (login, register_user, send_recovery_email, logout,
-                                     change_password)
+                                     change_password, verify_session)
 
 app = Flask(__name__)
 app.config["PREFERRED_URL_SCHEME"] = "https"
@@ -14,7 +14,6 @@ api = Api(app)
 CORS(app)
 
 
-@app.route('/')
 def main():
     return jsonify('Elo')
 
@@ -75,3 +74,16 @@ class Account(Resource):
 
 
 api.add_resource(Account, "/account/<user_id>", "/account/")
+
+
+class Main(Resource):
+    def get(self):
+        session_id = request.headers.get('session_id')
+        verification = verify_session(session_id)
+        if verification:
+            return make_response('True', 200)
+        else:
+            return main()
+
+
+api.add_resource(Main, "/")

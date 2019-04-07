@@ -98,7 +98,7 @@ def verify_session(session_id):
     session_for_test_user = session.query(UMSessions).filter(
         UMSessions.session_id == session_id).exists()
     return  session.query(session_for_test_user).scalar()
-    # need to make this a decorator that checks the authorization header for session_id
+    # TODO need to make this a decorator that checks the authorization header for session_id
 
 
 def logout(user_id):
