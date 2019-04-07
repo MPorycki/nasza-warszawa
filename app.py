@@ -28,10 +28,10 @@ class Account(Resource):
                 email = request.headers.get('email')
             except Exception as e:
                 return make_response(e, 400)
-            new_session_id = login(email, raw_password)
+            new_session_id, user_id = login(email, raw_password)
             if new_session_id:
-                # TODO return account_id as well
-                return make_response(str(new_session_id), 200)
+                response = {'session_id': new_session_id, 'user_id': user_id}
+                return make_response(jsonify(response), 200)
             else:
                 return make_response('Wrong password', 400)
         else:

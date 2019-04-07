@@ -30,10 +30,12 @@ def login(email, raw_password):
         UMAccounts.email == email).first()[0])
     check = sha256_crypt.verify(raw_password, encrypted_from_db)
     session_to_return = None
+    user_id = None
     # TODO add passing through user id
     if check:
         session_to_return = create_session_for_user(email)
-    return session_to_return
+        user_id = session.query(UMAccounts).filter(UMAccounts.email == email).first().id
+    return session_to_return, user_id
 
 
 def send_recovery_email(email):

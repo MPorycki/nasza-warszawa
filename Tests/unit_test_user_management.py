@@ -65,14 +65,14 @@ def test_password_is_hashed_when_registering():
         session.commit()  # TODO make deletion a method
 
 
-def test_check_pass_returns_correct_sessionid():
+def test_login_returns_correct_sessionid():
     # GIVEN
     test_email = 'testinek@gmail.com'
     test_password = '123456789'
     register_user(test_email, test_password)
 
     # WHEN
-    test_login = login(test_email, test_password)
+    test_login, test_id = login(test_email, test_password)
 
     # THEN
     created_user = session.query(UMAccounts).filter(UMAccounts.email == test_email).first()
@@ -84,6 +84,27 @@ def test_check_pass_returns_correct_sessionid():
     finally:
         # CLEANUP
         session.query(UMSessions).filter(UMSessions.session_id == created_session_id).delete()
+        session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
+        session.commit()
+
+
+def test_login_returns_correct_userid():
+    # GIVEN
+    test_email = 'testinek@gmail.com'
+    test_password = '123456789'
+    register_user(test_email, test_password)
+
+    # WHEN
+    test_login, test_id = login(test_email, test_password)
+
+    # THEN
+    created_user = session.query(UMAccounts).filter(UMAccounts.email == test_email).first()
+    user_id = created_user.id
+    try:
+        assert test_id == user_id
+    finally:
+        # CLEANUP
+        session.query(UMSessions).filter(UMSessions.um_accounts_id == user_id).delete()
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
         session.commit()
 
