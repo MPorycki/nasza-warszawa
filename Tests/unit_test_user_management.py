@@ -2,7 +2,8 @@ from passlib.hash import sha256_crypt
 
 from Models.db import session
 from Models.user_management import UMAccounts, UMSessions
-from Modules.user_management import register_user, login, logout, change_password
+from Modules.user_management import (register_user, login, logout, change_password,
+                                     send_recovery_email)
 
 """
 Tests TODO
@@ -134,7 +135,21 @@ def test_logout_removes_session():
 
 
 def test_recovery_email_is_sent():
-    pass
+    # GIVEN
+    test_email = 's15307@pjwstk.edu.pl'
+    test_password = '123456789'
+    register_user(test_email, test_password)
+
+    # WHEN
+    test_send = send_recovery_email(test_email)
+
+    # THEN
+    try:
+        assert test_send == 'email_sent'
+    finally:
+        # CLEANUP
+        session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
+        session.commit()
 
 
 def test_can_change_password():

@@ -1,5 +1,7 @@
 import uuid
 import datetime
+import smtplib
+import ssl
 
 from passlib.hash import sha256_crypt
 from sqlalchemy.exc import InvalidRequestError, IntegrityError
@@ -39,7 +41,30 @@ def login(email, raw_password):
 
 
 def send_recovery_email(email):
-    pass
+    smtp_server = "smtp.gmail.com"
+    port = 587  # For starttls
+    sender_email = "poryckimarcin@gmail.com"
+    password = "s@>-88bQ~[uhkp'd"
+
+    context = ssl.create_default_context()
+
+    message = "Here's your recovery link!!"
+
+    response = 'message_not_sent'
+    try:
+        server = smtplib.SMTP(smtp_server, port)
+        server.ehlo()  # Can be omitted
+        server.starttls(context=context)  # Secure the connection
+        server.ehlo()  # Can be omitted
+        server.login(sender_email, password)
+        server.sendmail(sender_email,email,message)
+        response = 'email_sent'
+    except Exception as e:
+        # Print any error messages to stdout
+        print(e)
+    finally:
+        server.quit()
+        return response
 
 
 def change_password(user_id, new_password):
@@ -70,12 +95,10 @@ def create_session_for_user(email):
 
 
 def verify_session(session_id):
-    # what is being stored in cookie? because I can check and tell, that this session ID belongs
-    # to a given user, do we want to verify that this user is the one passing the request,
-    # or is just the fact of sending the session ID being enough to login the user to that
-    # given account?
+    session_for_test_user = session.query(UMSessions).filter(
+        UMSessions.session_id == session_id).exists()
+    return  session.query(session_for_test_user).scalar()
     # need to make this a decorator that checks the authorization header for session_id
-    pass
 
 
 def logout(user_id):
