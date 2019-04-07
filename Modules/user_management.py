@@ -8,7 +8,6 @@ from Models.user_management import UMAccounts, UM_sent_messages, UMSessions
 from Models.db import session_scope, session
 
 
-
 def register_user(email, raw_password):
     created_at = datetime.datetime.now()
     user_id = uuid.uuid4().hex
@@ -26,10 +25,11 @@ def register_user(email, raw_password):
     return "registered"
 
 
-def check_password(email, raw_password):
+def login(email, raw_password):
     encrypted_from_db = str(session.query(UMAccounts.hashed_password).filter(
         UMAccounts.email == email).first()[0])
     check = sha256_crypt.verify(raw_password, encrypted_from_db)
+    session_to_return = None
     if check:
         session_to_return = create_session_for_user(email)
     return session_to_return
@@ -64,5 +64,10 @@ def verify_session(session_id):
     pass
 
 
-def logout(session_id):
-    pass
+def logout(user_id):
+    try:
+        session.query(UMSessions).filter(UMSessions.um_accounts_id == user_id).delete()
+        session.commit()
+    except Exception as e:
+        return 'logout_unsuccessful'
+    return 'logout_successful'

@@ -1,6 +1,6 @@
 from Models.db import session
 from Models.user_management import UMAccounts, UMSessions
-from Modules.user_management import register_user, check_password
+from Modules.user_management import register_user, login, logout
 
 """
 Tests TODO
@@ -70,7 +70,7 @@ def test_check_pass_returns_correct_sessionid():
     register_user(test_email, test_password)
 
     # WHEN
-    test_login = check_password(test_email, test_password)
+    test_login = login(test_email, test_password)
 
     # THEN
     created_user = session.query(UMAccounts).filter(UMAccounts.email == test_email).first()
@@ -83,3 +83,22 @@ def test_check_pass_returns_correct_sessionid():
         session.query(UMSessions).filter(UMSessions.session_id == created_session_id).delete()
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
         session.commit()
+
+
+def test_logout_removes_session():
+    # GIVEN
+    test_email = 'testinek@gmail.com'
+    test_password = '123456789'
+    register_user(test_email, test_password)
+    login(test_email, test_password)
+    user_id = session.query(UMAccounts).filter(UMAccounts.email == test_email).first().id
+
+    # WHEN
+    test_logout = logout(user_id)
+
+    # THEN
+    session_for_test_user = session.query(UMSessions).filter(
+        UMSessions.um_accounts_id == user_id).exists()
+    exists = session.query(session_for_test_user).scalar()
+    assert exists == False
+    assert test_logout == 'logout_successful'
