@@ -3,7 +3,8 @@ from flask.json import jsonify
 from flask_restful import Api, Resource
 from flask_cors import CORS
 
-from Modules.user_management import login, register_user, send_recovery_email, logout
+from Modules.user_management import (login, register_user, send_recovery_email, logout,
+                                     change_password)
 
 app = Flask(__name__)
 app.config["PREFERRED_URL_SCHEME"] = "https"
@@ -29,6 +30,7 @@ class Account(Resource):
                 return make_response(e, 400)
             new_session_id = login(email, raw_password)
             if new_session_id:
+                # TODO return account_id as well
                 return make_response(str(new_session_id), 200)
             else:
                 return make_response('Wrong password', 400)
@@ -45,11 +47,20 @@ class Account(Resource):
         else:
             return make_response(registration_result, 400)
 
-    def patch(self):
-        # Password recovery
-        email = request.headers.get('email')
-        confirmation = send_recovery_email(email)
-        return make_response(confirmation, 200)
+    def patch(self, user_id=None):
+        if user_id == None:
+            # Password recovery email sending
+            email = request.headers.get('email')
+            confirmation = send_recovery_email(email)
+            return make_response(confirmation, 200)
+        else:
+            # Password change handling
+            new_password = request.headers.get('new_password')
+            password_change = change_password(user_id, new_password)
+            if password_change == 'password_changed':
+                return make_response(password_change, 200)
+            else:
+                return make_response(password_change, 400)
 
     def delete(self):
         # Logout

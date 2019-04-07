@@ -1,6 +1,8 @@
+from passlib.hash import sha256_crypt
+
 from Models.db import session
 from Models.user_management import UMAccounts, UMSessions
-from Modules.user_management import register_user, login, logout
+from Modules.user_management import register_user, login, logout, change_password
 
 """
 Tests TODO
@@ -80,6 +82,7 @@ def test_check_pass_returns_correct_sessionid():
     try:
         assert test_login == created_session_id
     finally:
+        # CLEANUP
         session.query(UMSessions).filter(UMSessions.session_id == created_session_id).delete()
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
         session.commit()
@@ -100,5 +103,38 @@ def test_logout_removes_session():
     session_for_test_user = session.query(UMSessions).filter(
         UMSessions.um_accounts_id == user_id).exists()
     exists = session.query(session_for_test_user).scalar()
-    assert exists == False
-    assert test_logout == 'logout_successful'
+    try:
+        assert exists == False
+        assert test_logout == 'logout_successful'
+    finally:
+        # CLEANUP
+        session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
+        session.commit()
+
+
+def test_recovery_email_is_sent():
+    pass
+
+
+def test_can_change_password():
+    # GIVEN
+    test_email = 'testinek@gmail.com'
+    test_password = '123456789'
+    register_user(test_email, test_password)
+    new_password = 'abecadlo'
+    test_id = session.query(UMAccounts).filter(UMAccounts.email == test_email).first().id
+    # TODO randomize passwords for security reasons???
+    # WHEN
+    test_change = change_password(test_id, new_password)
+
+    # THEN
+    current_password = session.query(UMAccounts).filter(
+        UMAccounts.email == test_email).first().hashed_password
+    try:
+        assert sha256_crypt.verify(test_password, current_password) == False
+        assert sha256_crypt.verify(new_password, current_password) == True
+        assert test_change == 'password_changed'
+    finally:
+        # CLEANUP
+        session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
+        session.commit()

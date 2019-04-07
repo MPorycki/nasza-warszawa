@@ -30,6 +30,7 @@ def login(email, raw_password):
         UMAccounts.email == email).first()[0])
     check = sha256_crypt.verify(raw_password, encrypted_from_db)
     session_to_return = None
+    # TODO add passing through user id
     if check:
         session_to_return = create_session_for_user(email)
     return session_to_return
@@ -37,6 +38,17 @@ def login(email, raw_password):
 
 def send_recovery_email(email):
     pass
+
+
+def change_password(user_id, new_password):
+    user= session.query(UMAccounts).filter(UMAccounts.id == user_id).first()
+    new_password_hash = sha256_crypt.hash(new_password)
+    user.hashed_password = new_password_hash
+    try:
+        session.commit()
+    except Exception as e:
+        return "password_not_changed"
+    return 'password_changed'
 
 
 def create_session_for_user(email):
