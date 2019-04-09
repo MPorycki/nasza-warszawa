@@ -15,7 +15,7 @@ CORS(app)
 
 
 def main():
-    return jsonify('Elo!')
+    return jsonify('Elo')
 
 
 class Account(Resource):
