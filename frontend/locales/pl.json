@@ -1,0 +1,21 @@
+{
+  "main": {
+    "register": "Register",
+    "sign-in": "Sign-in",
+    "modal": {
+      "email": "Email",
+      "email-label": "Enter your email here",
+      "error": {
+        "required": "Required",
+        "length": "Minimum 6 symbols",
+        "email": "Please enter a valid email",
+        "password-repeat": "Passwords do not match"
+      },
+      "feedback-title": "Tell us how to improve!",
+      "password": "Password",
+      "password-label": "Enter password of minimum 6 symbols",
+      "password-repeat": "Repeat password",
+      "submit": "submit"
+    }
+  }
+}
