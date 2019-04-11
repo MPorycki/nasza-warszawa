@@ -1,3 +1,6 @@
+import axios from 'axios'
+import api from '../constants/api'
+
 export const state = () => ({
   locales: ['pl', 'en'],
   locale: 'pl'
@@ -13,10 +16,25 @@ export const mutations = {
 
 export const actions = {
   nuxtServerInit({ dispatch, state }, { params }) {
-    return Promise.all([
-      dispatch('slides/load', params),
-      dispatch('menu/load', params),
-      dispatch('site/load', params)
-    ])
+
+  },
+
+  register({ state }, data) {
+    console.log('data in store')
+    console.log(data)
+    const form = new FormData()
+
+    form.append('email', data.email)
+    form.append('raw_password', data.password)
+
+    axios.post(api.register, form)
+      .then(res => console.log(res))
+      .catch(e => console.log(e))
+  },
+
+  test() {
+    axios.get('/')
+      .then(console.log)
+      .catch(console.log)
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" max-width="350">
+  <v-dialog max-width="350">
     <template v-slot:activator="{ on }">
       <v-btn :color="isFeedback ? 'blue' : 'primary'" :flat="isFeedback" dark v-on="on">
         {{ action }}
@@ -23,16 +23,16 @@
         <v-text-field
           v-model="form.email"
           :label="$t('main.modal.email')"
-          :rules="!isFeedback ? [rules.required, rules.email] : ''"
-          validate-on-blur="true"
+          :rules="!isFeedback ? [rules.required, rules.email] : []"
+          :validate-on-blur="true"
           autofocus
         />
         <v-text-field
-          v-model="form.password"
           v-if="!isFeedback"
+          v-model="form.password"
           :label="$t('main.modal.password')"
           :rules="[rules.required, rules.password]"
-          validate-on-blur="true"
+          :validate-on-blur="true"
           required
         />
         <v-textarea
@@ -40,13 +40,13 @@
           name="input-7-1"
           label="Message"
           hint="Write your message"
-        ></v-textarea>
+        />
         <v-text-field
           v-if="isRegister"
           v-model="form.repeatPassword"
           :label="$t('main.modal.password-repeat')"
           :rules="[rules.required, rules.password, rules.passwordRepeat]"
-          validate-on-blur="true"
+          :validate-on-blur="true"
           required
         />
       </v-card-text>
@@ -77,16 +77,14 @@ export default {
         repeatPassword: ''
       },
       rules: {
-        /* eslint-disable */
         required: value => !!value || this.$t('main.modal.error.required'),
         password: value => value.length > 5 || this.$t('main.modal.error.length'),
-        email: value => {
+        email: (value) => {
           const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
           return pattern.test(value) || this.$t('main.modal.error.email')
         },
         passwordRepeat: value => value === this.form.password || this.$t('main.modal.error.password-repeat')
       }
-      /* eslint-enable */
     }
   },
   computed: {
@@ -96,7 +94,9 @@ export default {
   },
   methods: {
     sendForm() {
-
+      console.log('form from compo')
+      console.log(this.form)
+      this.$store.dispatch('register', this.form)
     }
   }
 }

@@ -10,28 +10,27 @@
       md6
     >
       <v-card class="main-text">
-        <!--TODO: Edit it properly and maintainably-->
-        <h1>PIІMO</h1>
+        <!--TODO: Edit it properly and maintainably, maybe using some content-management system-->
+        <h1>{{ $t('main.content.header') }}</h1>
 
-        <h2>Aplikacja, z ktуrє szybko stworzysz kaњdy oficjalny dokument.</h2>
+        <h2>{{ $t('main.content.subheader') }}</h2>
         <br>
-        <p><b>PIІMO to edytor do tworzenia:</b></p>
+        <p>
+          <b>{{ $t('main.content.list_header') }}</b>
+        </p>
         <ul>
-          <li>wnioskуw o dostкp do informacji publicznej</li>
-          <li>podaс</li>
-          <li>zaњaleс</li>
-          <li>odwo≥aс</li>
-          <li>skarg</li>
-          <li>wnioskуw</li>
-          <li>ponagleс</li>
+          <li v-for="index in LIST_ITEM_AMOUNT" :key="`main_list_item${index}`">
+            {{ $t(`main.content.list_item_${index}`) }}
+          </li>
         </ul>
         <br>
-        <p>PIІMO oferuje nieodp≥atny zbiуr szablonуw wraz z odpowiedniє podstawє prawnє na kaњdє okazjк. Wystarczy wype≥niж niezbкdne pola,
-          a aplikacja sama dopasuje Twoje dane do wybranego szablonu, tworzєc gotowy edytowalny dokument.</p>
-
-        <p>Zapisuj, edytuj, drukuj i twуrz pliki PDF. Nie potrzebujesz specjalistycznej prawniczej wiedzy,
-          aby dochodziж swoich praw przed administracjє publicznє.</p>
+        <p v-for="index in DESCRIPTION_AMOUNT" :key="`main_description${index}`">
+          {{ $t(`main.content.description_${index}`) }}
+        </p>
       </v-card>
+      <v-btn @click="$store.dispatch('test')">
+        Test
+      </v-btn>
     </v-flex>
   </v-layout>
 </template>
@@ -40,6 +39,12 @@
 
 export default {
   components: {
+  },
+  data() {
+    return {
+      LIST_ITEM_AMOUNT: 7,
+      DESCRIPTION_AMOUNT: 2
+    }
   }
 }
 </script>

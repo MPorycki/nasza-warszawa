@@ -40,8 +40,9 @@ module.exports = {
   ** Plugins to load before mounting the App
   */
   plugins: [
-    '@/plugins/vuetify',
-    '@/plugins/i18n.js'
+    '~/plugins/vuetify',
+    '~/plugins/i18n.js',
+    '~/plugins/axios'
   ],
 
   /*
@@ -56,6 +57,15 @@ module.exports = {
   */
   axios: {
     // See https://github.com/nuxt-community/axios-module#options
+    proxyHeaders: true,
+    proxy: true
+  },
+
+  proxy: {
+    '/api/': {
+      target: 'http://api.example.com',
+      pathRewrite: {'^/api/': `${process.env.API_URL || 'http://localhost:5000'}`}
+    }
   },
 
   /*
