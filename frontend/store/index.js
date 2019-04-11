@@ -30,7 +30,10 @@ export const actions = {
 
     axios.post(api.register, form)
       .then(res => {
-        console.log(res)
+        const { user_id, session_id } = res.data
+
+        this.$cookies.set(cookie.auth, session_id)
+        this.$router.push(`/user/${user_id}`)
       })
       .catch(e => console.log(e))
   },
