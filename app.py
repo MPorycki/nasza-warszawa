@@ -43,11 +43,12 @@ class Account(Resource):
         # Register
         email = request.form.get('email')
         raw_password = request.form.get('raw_password')
-        registration_result = register_user(email, raw_password)
-        if registration_result == 'registered':
-            return make_response(registration_result, 200)
+        new_session_id, user_id, message = register_user(email, raw_password)
+        if new_session_id and user_id:
+            response = {'session_id': new_session_id, 'user_id': user_id}
+            return make_response(jsonify(response), 200)
         else:
-            return make_response(registration_result, 400)
+            return make_response(message, 400)
 
     def patch(self, user_id=None):
         if user_id == None:
