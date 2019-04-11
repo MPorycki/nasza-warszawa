@@ -94,8 +94,6 @@ export default {
   },
   methods: {
     sendForm() {
-      console.log('form from compo')
-      console.log(this.form)
       this.$store.dispatch('register', this.form)
     }
   }

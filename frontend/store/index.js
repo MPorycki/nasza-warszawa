@@ -1,5 +1,8 @@
 import axios from 'axios'
+
 import api from '../constants/api'
+import cookie from '../constants/cookie'
+
 
 export const state = () => ({
   locales: ['pl', 'en'],
@@ -19,16 +22,16 @@ export const actions = {
 
   },
 
-  register({ state }, data) {
-    console.log('data in store')
-    console.log(data)
+  register({ state }, { email, password }) {
     const form = new FormData()
 
-    form.append('email', data.email)
-    form.append('raw_password', data.password)
+    form.append('email', email)
+    form.append('raw_password', password)
 
     axios.post(api.register, form)
-      .then(res => console.log(res))
+      .then(res => {
+        console.log(res)
+      })
       .catch(e => console.log(e))
   },
 
