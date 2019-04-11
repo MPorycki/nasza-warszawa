@@ -3,7 +3,6 @@ import axios from 'axios'
 import api from '../constants/api'
 import cookie from '../constants/cookie'
 
-
 export const state = () => ({
   locales: ['pl', 'en'],
   locale: 'pl'
@@ -29,7 +28,7 @@ export const actions = {
     form.append('raw_password', password)
 
     axios.post(api.register, form)
-      .then(res => {
+      .then((res) => {
         const { user_id, session_id } = res.data
 
         this.$cookies.set(cookie.auth, session_id)
