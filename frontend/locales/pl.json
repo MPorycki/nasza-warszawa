@@ -1,0 +1,35 @@
+{
+  "main": {
+    "register": "Register",
+    "sign-in": "Sign-in",
+    "modal": {
+      "email": "Email",
+      "email-label": "Enter your email here",
+      "error": {
+        "required": "Required",
+        "length": "Minimum 6 symbols",
+        "email": "Please enter a valid email",
+        "password-repeat": "Passwords do not match"
+      },
+      "feedback-title": "Tell us how to improve!",
+      "password": "Password",
+      "password-label": "Enter password of minimum 6 symbols",
+      "password-repeat": "Repeat password",
+      "submit": "submit"
+    },
+    "content": {
+      "header": "PIІMO",
+      "subheader": "Aplikacja, z ktуrє szybko stworzysz kaњdy oficjalny dokument.",
+      "list_header": "PIІMO to edytor do tworzenia:",
+      "list_item_1": "wnioskуw o dostкp do informacji publicznej",
+      "list_item_2": "podaс",
+      "list_item_3": "zaњaleс",
+      "list_item_4": "odwo≥aс",
+      "list_item_5": "skarg",
+      "list_item_6": "wnioskуw",
+      "list_item_7": "ponagleс",
+      "description_1": "PIІMO oferuje nieodp≥atny zbiуr szablonуw wraz z odpowiedniє podstawє prawnє na kaњdє okazjк. Wystarczy wype≥niж niezbкdne pola, a aplikacja sama dopasuje Twoje dane do wybranego szablonu, tworzєc gotowy edytowalny dokument.",
+      "description_2": "Zapisuj, edytuj, drukuj i twуrz pliki PDF. Nie potrzebujesz specjalistycznej prawniczej wiedzy,aby dochodziж swoich praw przed administracjє publicznє."
+    }
+  }
+}
