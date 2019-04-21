@@ -19,12 +19,15 @@ def register_user(email, raw_password):
     session.add(new_user)
     try:
         session.commit()
+        new_session_id, user_id = login(email, raw_password)
+        message = "registered"
     except (InvalidRequestError, IntegrityError) as e:
         # Error thrown, when some of the db requirements are not met
         session.rollback()
-        return "email_already_in_db"
+        message = "email_already_in_db"
+        return message
     # session.close()
-    return "registered"
+    return new_session_id, user_id, message
 
 
 def login(email, raw_password):
@@ -97,7 +100,7 @@ def create_session_for_user(email):
 def verify_session(session_id):
     session_for_test_user = session.query(UMSessions).filter(
         UMSessions.session_id == session_id).exists()
-    return  session.query(session_for_test_user).scalar()
+    return session.query(session_for_test_user).scalar()
     # TODO need to make this a decorator that checks the authorization header for session_id
 
 
