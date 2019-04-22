@@ -22,8 +22,8 @@ class UMSessions(base):
     created_at = Column(TIMESTAMP)
 
 
-class UM_sent_messages(base):
-    __tablename__ = 'UM_sent_messages'
+class UMSentMessages(base):
+    __tablename__ = 'um_sent_messages'
 
     um_accounts_id = Column(String(length=32),
                             ForeignKey(UMAccounts.id, onupdate='CASCADE', ondelete='CASCADE'))

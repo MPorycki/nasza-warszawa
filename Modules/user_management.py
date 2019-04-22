@@ -6,7 +6,7 @@ import ssl
 from passlib.hash import sha256_crypt
 from sqlalchemy.exc import InvalidRequestError, IntegrityError
 
-from Models.user_management import UMAccounts, UM_sent_messages, UMSessions
+from Models.user_management import UMAccounts, UMSentMessages, UMSessions
 from Models.db import session_scope, session
 
 
@@ -62,6 +62,15 @@ def send_recovery_email(email):
         server.login(sender_email, password)
         server.sendmail(sender_email, email, message)
         response = 'email_sent'
+        # Log the sending in the DB
+        account_id = session.query(UMAccounts).filter(UMAccounts.email == email).first().id
+        id = uuid.uuid4().hex
+        created_at = datetime.datetime.now()
+        sending_log = UMSentMessages(um_accounts_id=account_id, id=id,
+                                     message_type='password_reset',
+                                     message_body_plaintext=message, created_at=created_at)
+        session.add(sending_log)
+        session.commit()
     except Exception as e:
         # Print any error messages to stdout
         print(e)

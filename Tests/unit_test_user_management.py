@@ -2,7 +2,7 @@ from mock import patch
 from passlib.hash import sha256_crypt
 
 from Models.db import session
-from Models.user_management import UMAccounts, UMSessions
+from Models.user_management import UMAccounts, UMSessions, UMSentMessages
 from Modules.user_management import (register_user, login, logout, change_password,
                                      send_recovery_email)
 
@@ -157,8 +157,10 @@ def test_recovery_email_is_sent(mockfun):
     # THEN
     try:
         assert test_send == 'email_sent'
+
     finally:
         # CLEANUP
+        session.query(UMSentMessages).filter(UMSentMessages.um_accounts_id == user_id).delete()
         session.query(UMSessions).filter(UMSessions.um_accounts_id == user_id).delete()
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
         session.commit()
