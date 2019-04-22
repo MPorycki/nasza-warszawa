@@ -10,7 +10,6 @@ from Modules.user_management import (login, register_user, send_recovery_email, 
 
 app = Flask(__name__)
 app.config.from_object('config_flask.SandboxConfig')
-# app.config["PREFERRED_URL_SCHEME"] = "https"
 api = Api(app)
 
 # Enable CORS on all endpoints
@@ -21,26 +20,8 @@ def main():
     return jsonify('Elo')
 
 
-class Account(Resource):
-    def get(self, user_id=None):
-        # Login
-        if user_id is None:
-            try:
-                raw_password = request.headers.get('raw_password')
-                email = request.headers.get('email')
-            except Exception as e:
-                return make_response(e, 400)
-            new_session_id, user_id = login(email, raw_password)
-            if new_session_id:
-                response = {'session_id': new_session_id, 'user_id': user_id}
-                return make_response(jsonify(response), 200)
-            else:
-                return make_response('Wrong password', 400)
-        else:
-            pass
-
+class AccountRegister(Resource):
     def post(self):
-        # Register
         email = request.form.get('email')
         raw_password = request.form.get('raw_password')
         new_session_id, user_id, message = register_user(email, raw_password)
@@ -50,21 +31,49 @@ class Account(Resource):
         else:
             return make_response(message, 400)
 
-    def patch(self, user_id=None):
-        if user_id == None:
+
+api.add_resource(AccountRegister, "/account/register")
+
+
+class AccountLogin(Resource):
+    def post(self):
+        try:
+            raw_password = request.form.get('raw_password')
+            email = request.form.get('email')
+        except Exception as e:
+            return make_response(e, 400)
+        new_session_id, user_id = login(email, raw_password)
+        if new_session_id:
+            response = {'session_id': new_session_id, 'user_id': user_id}
+            return make_response(jsonify(response), 200)
+        else:
+            return make_response('Wrong password', 400)
+
+
+api.add_resource(AccountLogin, "/account/login")
+
+
+class AccountResetPassword(Resource):
+    def patch(self, user_input=None):
+        if user_input is None:
             # Password recovery email sending
-            email = request.headers.get('email')
+            email = request.form.get('email')
             confirmation = send_recovery_email(email)
             return make_response(confirmation, 200)
         else:
             # Password change handling
-            new_password = request.headers.get('new_password')
-            password_change = change_password(user_id, new_password)
+            new_password = request.form.get('new_password')
+            password_change = change_password(user_input, new_password)
             if password_change == 'password_changed':
                 return make_response(password_change, 200)
             else:
                 return make_response(password_change, 400)
 
+
+api.add_resource(AccountResetPassword, "/account/reset")
+
+
+class AccountLogout(Resource):
     def delete(self):
         # Logout
         user_id = request.headers.get('user_id')
@@ -77,7 +86,7 @@ class Account(Resource):
             return make_response(None, 400)
 
 
-api.add_resource(Account, "/account/<user_id>", "/account")
+api.add_resource(AccountLogout, "/account/logout")
 
 
 class Main(Resource):

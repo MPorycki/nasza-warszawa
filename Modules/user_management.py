@@ -24,8 +24,8 @@ def register_user(email, raw_password):
     except (InvalidRequestError, IntegrityError) as e:
         # Error thrown, when some of the db requirements are not met
         session.rollback()
+        new_session_id, user_id = (None, None)
         message = "email_already_in_db"
-        return message
     # session.close()
     return new_session_id, user_id, message
 
@@ -47,7 +47,7 @@ def send_recovery_email(email):
     smtp_server = "smtp.gmail.com"
     port = 587  # For starttls
     sender_email = "poryckimarcin@gmail.com"
-    password = "s@>-88bQ~[uhkp'd"
+    password = "s@>-88bQ~[uhkp'd" # TODO move outside of code
 
     context = ssl.create_default_context()
 
@@ -66,7 +66,7 @@ def send_recovery_email(email):
         # Print any error messages to stdout
         print(e)
     finally:
-        server.quit()
+        server.quit() # TODO add logging!
         return response
 
 
