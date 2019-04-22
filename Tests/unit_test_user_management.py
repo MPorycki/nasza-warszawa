@@ -1,3 +1,4 @@
+from mock import patch
 from passlib.hash import sha256_crypt
 
 from Models.db import session
@@ -142,11 +143,13 @@ def test_logout_removes_session():
         session.commit()
 
 
-def test_recovery_email_is_sent(): # TODO add mockup to the sending
+@patch('smtplib.SMTP.sendmail')
+def test_recovery_email_is_sent(mockfun):
     # GIVEN
     test_email = 's15307@pjwstk.edu.pl'
     test_password = '123456789'
     new_session_id, user_id, message = register_user(test_email, test_password)
+    mockfun.return_vale = None
 
     # WHEN
     test_send = send_recovery_email(test_email)

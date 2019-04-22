@@ -47,7 +47,7 @@ def send_recovery_email(email):
     smtp_server = "smtp.gmail.com"
     port = 587  # For starttls
     sender_email = "poryckimarcin@gmail.com"
-    password = "s@>-88bQ~[uhkp'd" # TODO move outside of code
+    password = "s@>-88bQ~[uhkp'd"  # TODO move outside of code
 
     context = ssl.create_default_context()
 
@@ -60,18 +60,18 @@ def send_recovery_email(email):
         server.starttls(context=context)  # Secure the connection
         server.ehlo()  # Can be omitted
         server.login(sender_email, password)
-        server.sendmail(sender_email,email,message)
+        server.sendmail(sender_email, email, message)
         response = 'email_sent'
     except Exception as e:
         # Print any error messages to stdout
         print(e)
     finally:
-        server.quit() # TODO add logging!
+        server.quit()  # TODO add logging!
         return response
 
 
 def change_password(user_id, new_password):
-    user= session.query(UMAccounts).filter(UMAccounts.id == user_id).first()
+    user = session.query(UMAccounts).filter(UMAccounts.id == user_id).first()
     new_password_hash = sha256_crypt.hash(new_password)
     user.hashed_password = new_password_hash
     try:
