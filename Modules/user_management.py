@@ -6,7 +6,7 @@ import ssl
 from passlib.hash import sha256_crypt
 from sqlalchemy.exc import InvalidRequestError, IntegrityError
 
-from Models.user_management import UMAccounts, UM_sent_messages, UMSessions
+from Models.user_management import UMAccounts, UMSentMessages, UMSessions
 from Models.db import session_scope, session
 
 
@@ -24,8 +24,8 @@ def register_user(email, raw_password):
     except (InvalidRequestError, IntegrityError) as e:
         # Error thrown, when some of the db requirements are not met
         session.rollback()
+        new_session_id, user_id = (None, None)
         message = "email_already_in_db"
-        return message
     # session.close()
     return new_session_id, user_id, message
 
@@ -47,7 +47,7 @@ def send_recovery_email(email):
     smtp_server = "smtp.gmail.com"
     port = 587  # For starttls
     sender_email = "poryckimarcin@gmail.com"
-    password = "s@>-88bQ~[uhkp'd"
+    password = "s@>-88bQ~[uhkp'd"  # TODO move outside of code
 
     context = ssl.create_default_context()
 
@@ -60,18 +60,27 @@ def send_recovery_email(email):
         server.starttls(context=context)  # Secure the connection
         server.ehlo()  # Can be omitted
         server.login(sender_email, password)
-        server.sendmail(sender_email,email,message)
+        server.sendmail(sender_email, email, message)
         response = 'email_sent'
+        # Log the sending in the DB
+        account_id = session.query(UMAccounts).filter(UMAccounts.email == email).first().id
+        id = uuid.uuid4().hex
+        created_at = datetime.datetime.now()
+        sending_log = UMSentMessages(um_accounts_id=account_id, id=id,
+                                     message_type='password_reset',
+                                     message_body_plaintext=message, created_at=created_at)
+        session.add(sending_log)
+        session.commit()
     except Exception as e:
         # Print any error messages to stdout
         print(e)
     finally:
-        server.quit()
+        server.quit()  # TODO add logging!
         return response
 
 
 def change_password(user_id, new_password):
-    user= session.query(UMAccounts).filter(UMAccounts.id == user_id).first()
+    user = session.query(UMAccounts).filter(UMAccounts.id == user_id).first()
     new_password_hash = sha256_crypt.hash(new_password)
     user.hashed_password = new_password_hash
     try:

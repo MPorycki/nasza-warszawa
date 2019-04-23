@@ -1,7 +1,8 @@
+from mock import patch
 from passlib.hash import sha256_crypt
 
 from Models.db import session
-from Models.user_management import UMAccounts, UMSessions
+from Models.user_management import UMAccounts, UMSessions, UMSentMessages
 from Modules.user_management import (register_user, login, logout, change_password,
                                      send_recovery_email)
 
@@ -18,13 +19,14 @@ def test_can_register():
     test_password = '123456789'
 
     # WHEN
-    test_register = register_user(test_email, test_password)
+    new_session_id, user_id, message = register_user(test_email, test_password)
 
     # THEN
     try:
-        assert test_register == 'registered'
+        assert message == 'registered'
     finally:
         # CLEANUP
+        session.query(UMSessions).filter(UMSessions.session_id == new_session_id).delete()
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
         session.commit()
 
@@ -34,14 +36,17 @@ def test_cant_register_again_with_existing_mail():
     test_email = 'testinek@gmail.com'
     test_password = '123456789'
     # WHEN
-    test_register1 = register_user(test_email, test_password)
-    test_register2 = register_user(test_email, test_password)
+    new_session_id1, user_id1, message1 = register_user(test_email, test_password)
+    new_session_id2, user_id2, message2 = register_user(test_email, test_password)
     # THEN
     try:
-        assert test_register1 == 'registered'
-        assert test_register2 == 'email_already_in_db'
+        assert message1 == 'registered'
+        assert message2 == 'email_already_in_db'
+        assert new_session_id1 is not None
+        assert new_session_id2 is None
     finally:
         # CLEANUP
+        session.query(UMSessions).filter(UMSessions.session_id == new_session_id1).delete()
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
         session.commit()
 
@@ -52,16 +57,17 @@ def test_password_is_hashed_when_registering():
     test_password = '123456789'
 
     # WHEN
-    test_register = register_user(test_email, test_password)
+    new_session_id, user_id, message = register_user(test_email, test_password)
 
     # THEN
     created_user = session.query(UMAccounts).filter(UMAccounts.email == test_email).first()
     hashed_password = created_user.hashed_password
     try:
-        assert test_register == 'registered'
+        assert message == 'registered'
         assert hashed_password != test_password
     finally:
         # CLEANUP
+        session.query(UMSessions).filter(UMSessions.session_id == new_session_id).delete()
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
         session.commit()  # TODO make deletion a method
 
@@ -70,7 +76,9 @@ def test_login_returns_correct_sessionid():
     # GIVEN
     test_email = 'testinek@gmail.com'
     test_password = '123456789'
-    register_user(test_email, test_password)
+    new_session_id, user_id, message = register_user(test_email, test_password)
+    # Removing assigned session_id aka hard logout
+    session.query(UMSessions).filter(UMSessions.session_id == new_session_id).delete()
 
     # WHEN
     test_login, test_id = login(test_email, test_password)
@@ -93,7 +101,9 @@ def test_login_returns_correct_userid():
     # GIVEN
     test_email = 'testinek@gmail.com'
     test_password = '123456789'
-    register_user(test_email, test_password)
+    new_session_id, user_id, message = register_user(test_email, test_password)
+    # Removing assigned session_id aka hard logout
+    session.query(UMSessions).filter(UMSessions.session_id == new_session_id).delete()
 
     # WHEN
     test_login, test_id = login(test_email, test_password)
@@ -115,7 +125,6 @@ def test_logout_removes_session():
     test_email = 'testinek@gmail.com'
     test_password = '123456789'
     register_user(test_email, test_password)
-    login(test_email, test_password)
     user_id = session.query(UMAccounts).filter(UMAccounts.email == test_email).first().id
 
     # WHEN
@@ -134,11 +143,13 @@ def test_logout_removes_session():
         session.commit()
 
 
-def test_recovery_email_is_sent():
+@patch('smtplib.SMTP.sendmail')
+def test_recovery_email_is_sent(mockfun):
     # GIVEN
     test_email = 's15307@pjwstk.edu.pl'
     test_password = '123456789'
-    register_user(test_email, test_password)
+    new_session_id, user_id, message = register_user(test_email, test_password)
+    mockfun.return_vale = None
 
     # WHEN
     test_send = send_recovery_email(test_email)
@@ -146,8 +157,11 @@ def test_recovery_email_is_sent():
     # THEN
     try:
         assert test_send == 'email_sent'
+
     finally:
         # CLEANUP
+        session.query(UMSentMessages).filter(UMSentMessages.um_accounts_id == user_id).delete()
+        session.query(UMSessions).filter(UMSessions.um_accounts_id == user_id).delete()
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
         session.commit()
 
@@ -156,7 +170,7 @@ def test_can_change_password():
     # GIVEN
     test_email = 'testinek@gmail.com'
     test_password = '123456789'
-    register_user(test_email, test_password)
+    new_session_id, user_id, message = register_user(test_email, test_password)
     new_password = 'abecadlo'
     test_id = session.query(UMAccounts).filter(UMAccounts.email == test_email).first().id
     # TODO randomize passwords for security reasons???
@@ -172,5 +186,6 @@ def test_can_change_password():
         assert test_change == 'password_changed'
     finally:
         # CLEANUP
+        session.query(UMSessions).filter(UMSessions.um_accounts_id == user_id).delete()
         session.query(UMAccounts).filter(UMAccounts.email == test_email).delete()
         session.commit()
