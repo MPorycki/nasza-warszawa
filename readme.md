@@ -8,3 +8,7 @@ Steps to run a local debug mode version:
 5.1 In command line write `export FLASK_ENV=development` for dev env only
 5. Run the app locally: `flask run`
 6. App will be running on `127.0.0.1:5000` <- that's the "main address"
+
+Or a shortcut: 
+1. Go to /frontend directory
+2. Write `yarn backend` or `npm run backend` in case you don't have yarn
