@@ -10,5 +10,10 @@ Steps to run a local debug mode version:
 6. App will be running on `127.0.0.1:5000` <- that's the "main address"
 
 Or a shortcut: 
-1. Go to /frontend directory
-2. Write `yarn backend` or `npm run backend` in case you don't have yarn
+1. Run `sh startb.sh`
+
+To run frontend: 
+1. Make sure you have Node.js installed version 8+
+2. go to 'frontend' folder
+3. Install packages `npm install` or `yarn` if you have yarn.
+4. Run server with `npm run dev` or `yarn dev`.
