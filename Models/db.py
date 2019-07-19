@@ -13,16 +13,16 @@ Session = sessionmaker(db)
 session = Session()
 
 
-@contextmanager # TODO fix :(
-def session_scope(session=None):
-    if session is None:
-        session = Session()
+@contextmanager
+def session_scope(_session=None):
+    if _session is None:
+        _session = Session()
 
     try:
-        yield session
-        session.commit()
+        yield _session
+        _session.commit()
     except Exception:
-        session.rollback()
+        _session.rollback()
         raise
     finally:
-        session.close()
+        _session.close()
