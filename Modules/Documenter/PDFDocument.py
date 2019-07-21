@@ -1,7 +1,11 @@
+from contextlib import contextmanager
+import os
+
 import pdfkit
 
 from Models.db import session_scope
 from Models.documenter import DocTemplates
+from Models.user_management import UMAccounts
 
 
 class PDFDocument:
@@ -16,13 +20,34 @@ class PDFDocument:
         self.owner_id = owner_id
         self.custom_fields = custom_fields
 
+    def create_filename(self) -> str:
+        """
+        Creates name of the file from user mail and document name
+        :return: Filename as string in format user-mail_document-name
+        """
+        with session_scope() as session:
+            user_mail = (
+                session.query(UMAccounts)
+                    .filter(UMAccounts.id == self.owner_id)
+                    .first()
+                    .email
+            )
+            template_name = (
+                session.query(DocTemplates)
+                    .filter(DocTemplates.template_id == self.template_id)
+                    .first()
+                    .template_name
+            )
+            return "_".join((user_mail, template_name)) + ".pdf"
+
     def fill_form(self) -> str:
         """
-        Fills in form based on a template from the DB with the data from the custom_fields
+        Fills in form based on a template from the DB with the data from
+        the custom_fields
         :return: Filled document form in HTML style as str
         """
         form_text = self.get_form_text()
-        # TODO wykminic jak stworzyc uniwersalny wypelniacz tego forma
+        # TODO how to create a universal way to fill in different forms
 
     def get_form_text(self) -> str:
         """
@@ -32,21 +57,25 @@ class PDFDocument:
         with session_scope() as session:
             text = (
                 session.query(DocTemplates)
-                .filter(DocTemplates.template_id == self.template_id)
-                .first()
-                .template_text
+                    .filter(DocTemplates.template_id == self.template_id)
+                    .first()
+                    .template_text
             )
             return text
 
+    @contextmanager
     def create_file(self, options=None):
         """
-        Creates the PDF file, returns the filename and then removes the file after it is
-        not needed anymore
+        Creates the PDF file, returns the filename and then removes the file
+        after it is not needed anymore
         :param options:
         :return:
         """
         filled_form = self.fill_form()
+        filename = self.create_filename()
         if options:
-            pdfkit.from_string(filled_form, "test.pdf", options=options)
+            pdfkit.from_string(filled_form, filename, options=options)
         else:
-            pdfkit.from_string(filled_form, "test.pdf")
+            pdfkit.from_string(filled_form, filename)
+        yield filename
+        os.remove(filename)
