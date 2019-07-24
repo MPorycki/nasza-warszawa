@@ -20,25 +20,29 @@ class PDFDocument:
         self.owner_id = owner_id
         self.custom_fields = custom_fields
 
+    def get_username_and_template(self) -> tuple:
+        with session_scope() as session:
+            user_mail = (
+                session.query(UMAccounts)
+                .filter(UMAccounts.id == self.owner_id)
+                .first()
+                .email
+            )
+            template_name = (
+                session.query(DocTemplates)
+                .filter(DocTemplates.template_id == self.template_id)
+                .first()
+                .template_name
+            )
+            username = user_mail.split("@")[0]
+            return username, template_name
+
     def create_filename(self) -> str:
         """
         Creates name of the file from user mail and document name
         :return: Filename as string in format user-mail_document-name
         """
-        with session_scope() as session:
-            user_mail = (
-                session.query(UMAccounts)
-                    .filter(UMAccounts.id == self.owner_id)
-                    .first()
-                    .email
-            )
-            template_name = (
-                session.query(DocTemplates)
-                    .filter(DocTemplates.template_id == self.template_id)
-                    .first()
-                    .template_name
-            )
-            return "_".join((user_mail, template_name)) + ".pdf"
+        return "_".join(self.get_username_and_template()) + ".pdf"
 
     def fill_form(self) -> str:
         """
@@ -46,8 +50,7 @@ class PDFDocument:
         the custom_fields
         :return: Filled document form in HTML style as str
         """
-        form_text = self.get_form_text()
-        # TODO how to create a universal way to fill in different forms
+        return self.get_form_text().format(**self.custom_fields)
 
     def get_form_text(self) -> str:
         """
@@ -57,9 +60,9 @@ class PDFDocument:
         with session_scope() as session:
             text = (
                 session.query(DocTemplates)
-                    .filter(DocTemplates.template_id == self.template_id)
-                    .first()
-                    .template_text
+                .filter(DocTemplates.template_id == self.template_id)
+                .first()
+                .template_text
             )
             return text
 
@@ -69,7 +72,7 @@ class PDFDocument:
         Creates the PDF file, returns the filename and then removes the file
         after it is not needed anymore
         :param options:
-        :return:
+        :return: Filename as str
         """
         filled_form = self.fill_form()
         filename = self.create_filename()
