@@ -30,7 +30,7 @@ class PDFDocument:
             )
             template_name = (
                 session.query(DocTemplates)
-                .filter(DocTemplates.template_id == self.template_id)
+                .filter(DocTemplates.id == self.template_id)
                 .first()
                 .template_name
             )
@@ -63,7 +63,7 @@ class PDFDocument:
         with session_scope() as session:
             text = (
                 session.query(DocTemplates)
-                .filter(DocTemplates.template_id == self.template_id)
+                .filter(DocTemplates.id == self.template_id)
                 .first()
                 .template_text
             )
