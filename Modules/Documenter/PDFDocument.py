@@ -18,7 +18,7 @@ class PDFDocument:
     def __init__(self, template_id: str, owner_id: str, custom_fields: dict):
         self.template_id = template_id
         self.owner_id = owner_id
-        self.custom_fields = custom_fields
+        self.custom_fields = custom_fields # TODO handle changing this to dict from str
 
     def get_username_and_template(self) -> tuple:
         with session_scope() as session:

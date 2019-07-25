@@ -4,6 +4,7 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 
 from Modules.Documenter.PDFDocument import PDFDocument
+from Modules.Documenter.views import fetch_all_templates
 from Modules.user_management import (
     login,
     register_user,
@@ -108,6 +109,14 @@ api.add_resource(Main, "/")
 
 
 class CreatePDF(Resource):
+    def get(self):
+        session_id = request.headers.get("session_id")
+        verification = verify_session(session_id)
+        if verification:
+            return jsonify(fetch_all_templates())
+        else:
+            return main()
+
     def post(self):
         """
         Endpoint that handles the creation of PDF document based on

@@ -1,10 +1,14 @@
 from contextlib import contextmanager
+from copy import deepcopy
 import os
+import uuid
 
 import pytest
 from pytest import fixture
 
+from Models.documenter import DocTemplates
 from Modules.Documenter.PDFDocument import PDFDocument
+from Modules.Documenter.views import template_to_dict, fetch_all_templates
 
 
 @fixture()
@@ -14,6 +18,17 @@ def test_doc():
         "07054204-2a9a-4146-9942-47b077b557a7",
         {"custom_field1": "abc", "custom_field2": "see"},
     )
+    return obj
+
+
+@fixture()
+def test_db_doc():
+    obj = DocTemplates
+    obj.id = uuid.uuid4().hex
+    obj.name = "Test_obj"
+    obj.text = "Textytext {input_name}"
+    obj.raw_text = "Textytext"
+    obj.custom_fields = '{"input_name" : "Jan"}'
     return obj
 
 
@@ -41,7 +56,7 @@ def test_create_filename_creates_correct_name(test_doc, monkeypatch):
 
 
 def test_fill_form_creates_correct_text_when_correct_kwargs_are_given(
-        test_doc, monkeypatch
+    test_doc, monkeypatch
 ):
     # GIVEN
     monkeypatch.setattr(
@@ -57,7 +72,7 @@ def test_fill_form_creates_correct_text_when_correct_kwargs_are_given(
 
 
 def test_fill_form_creates_correct_text_when_too_many_kwargs_are_given(
-        test_doc, monkeypatch
+    test_doc, monkeypatch
 ):
     # GIVEN
     monkeypatch.setattr(
@@ -74,7 +89,7 @@ def test_fill_form_creates_correct_text_when_too_many_kwargs_are_given(
 
 
 def test_fill_form_raises_KeyError_when_not_enough_kwargs_are_given(
-        test_doc, monkeypatch
+    test_doc, monkeypatch
 ):
     # GIVEN
     monkeypatch.setattr(
@@ -104,3 +119,40 @@ def test_create_file_creates_file(test_doc, monkeypatch):
     with test_doc.create_file() as _:
         # THEN
         os.path.isfile(test_filename)
+
+
+def test_template_to_dict_returns_correct_json(test_db_doc):
+    # WHEN
+    test_result = template_to_dict(test_db_doc)
+
+    # THEN
+    assert test_result == {
+        "template_id": test_db_doc.id,
+        "template_name": test_db_doc.name,
+        "template_raw_text": test_db_doc.raw_text,
+    }
+
+
+def test_fetch_all_templates_returns_correct_data(test_db_doc, monkeypatch):
+    # GIVEN
+    monkeypatch.setattr(
+        "Modules.Documenter.views.all_templates_from_db",
+        lambda: [test_db_doc, deepcopy(test_db_doc)],
+    )
+
+    # WHEN
+    test_result = fetch_all_templates()
+
+    # THEN
+    assert test_result["templates"] == [
+        {
+            "template_id": test_db_doc.id,
+            "template_name": test_db_doc.name,
+            "template_raw_text": test_db_doc.raw_text,
+        },
+        {
+            "template_id": test_db_doc.id,
+            "template_name": test_db_doc.name,
+            "template_raw_text": test_db_doc.raw_text,
+        },
+    ]
