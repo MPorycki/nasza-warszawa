@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 import os
 
+import pytest
 from pytest import fixture
 
 from Modules.Documenter.PDFDocument import PDFDocument
@@ -40,7 +41,7 @@ def test_create_filename_creates_correct_name(test_doc, monkeypatch):
 
 
 def test_fill_form_creates_correct_text_when_correct_kwargs_are_given(
-    test_doc, monkeypatch
+        test_doc, monkeypatch
 ):
     # GIVEN
     monkeypatch.setattr(
@@ -56,7 +57,7 @@ def test_fill_form_creates_correct_text_when_correct_kwargs_are_given(
 
 
 def test_fill_form_creates_correct_text_when_too_many_kwargs_are_given(
-    test_doc, monkeypatch
+        test_doc, monkeypatch
 ):
     # GIVEN
     monkeypatch.setattr(
@@ -72,8 +73,8 @@ def test_fill_form_creates_correct_text_when_too_many_kwargs_are_given(
     assert test_form == "Hello abc, long time no see"
 
 
-def test_fill_form_raises_400_when_not_enough_kwargs_are_given(
-    test_doc, monkeypatch
+def test_fill_form_raises_KeyError_when_not_enough_kwargs_are_given(
+        test_doc, monkeypatch
 ):
     # GIVEN
     monkeypatch.setattr(
@@ -82,11 +83,9 @@ def test_fill_form_raises_400_when_not_enough_kwargs_are_given(
     )
     test_doc.custom_fields.pop("custom_field2")
 
-    # WHEN
-    test_form = test_doc.fill_form()
-
     # THEN
-    assert test_form == "Hello abc, long time no see"
+    with pytest.raises(KeyError):
+        assert test_doc.fill_form()
 
 
 def test_create_file_creates_file(test_doc, monkeypatch):

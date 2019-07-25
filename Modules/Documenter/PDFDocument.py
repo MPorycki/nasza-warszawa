@@ -50,7 +50,10 @@ class PDFDocument:
         the custom_fields
         :return: Filled document form in HTML style as str
         """
-        return self.get_form_text().format(**self.custom_fields)
+        try:
+            return self.get_form_text().format(**self.custom_fields)
+        except KeyError:
+            raise KeyError
 
     def get_form_text(self) -> str:
         """

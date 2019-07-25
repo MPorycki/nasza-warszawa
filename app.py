@@ -117,8 +117,11 @@ class CreatePDF(Resource):
         account_id = request.headers.get("account_id")
         custom_field = request.headers.get("custom_fields")
         document = PDFDocument(template_id, account_id, custom_field)
-        with document.create_file() as pdf_name:
-            return send_file(pdf_name, attachment_filename=pdf_name)
+        try:
+            with document.create_file() as pdf_name:
+                return send_file(pdf_name, attachment_filename=pdf_name)
+        except KeyError:
+            return make_response("Invalid form data", 400)
 
 
-api.add_resource(CreatePDF, "/documents/create")
+api.add_resource(CreatePDF, "/documents")
