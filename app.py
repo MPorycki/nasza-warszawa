@@ -1,3 +1,5 @@
+from functools import wraps
+
 from flask import Flask, request, make_response, send_file
 from flask.json import jsonify
 from flask_restful import Api, Resource
@@ -11,7 +13,7 @@ from Modules.user_management import (
     send_recovery_email,
     logout,
     change_password,
-    verify_session,
+    session_exists,
 )
 
 app = Flask(__name__)
@@ -24,6 +26,20 @@ CORS(app)
 
 def main():
     return jsonify("Elo")
+
+
+def verify_session(func):
+    session_id = request.headers.get("session_id")
+    account_id = request.headers.get("account_id")
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if session_exists(session_id, account_id):
+            return func(**kwargs)
+        else:
+            return make_response(401, "Invalid session")
+
+    return wrapper()
 
 
 class AccountRegister(Resource):
@@ -96,19 +112,16 @@ api.add_resource(AccountLogout, "/account/logout")
 
 
 class Main(Resource):
+    @verify_session
     def get(self):
-        session_id = request.headers.get("session_id")
-        verification = verify_session(session_id)
-        if verification:
-            return make_response("True", 200)
-        else:
-            return main()
+        return make_response("True", 200)
 
 
 api.add_resource(Main, "/")
 
 
 class CreatePDF(Resource):
+    @verify_session
     def get(self):
         session_id = request.headers.get("session_id")
         verification = verify_session(session_id)
@@ -117,6 +130,7 @@ class CreatePDF(Resource):
         else:
             return main()
 
+    @verify_session
     def post(self):
         """
         Endpoint that handles the creation of PDF document based on
