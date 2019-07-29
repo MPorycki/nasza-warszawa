@@ -44,6 +44,9 @@ module.exports = {
     '~/plugins/i18n.js',
     '~/plugins/axios'
   ],
+  router: {
+    middleware: ['i18n', 'auth']
+  },
 
   /*
   ** Nuxt.js modules

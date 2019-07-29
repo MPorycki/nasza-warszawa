@@ -20,8 +20,8 @@ export default ({ app, store, params }) => {
     locale: store.state.locale,
     fallbackLocale: 'pl',
     messages: {
-      'pl': PL,
-      'en': EN
+      pl: PL,
+      en: EN
     }
   })
 

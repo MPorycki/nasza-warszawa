@@ -7,9 +7,10 @@
       <v-spacer />
       <v-toolbar-items class="hidden-sm-and-down">
         <Modal action="feedback" />
-        <Modal action="sign-in" />
-        <!--<v-btn color="success" flat>Register</v-btn>-->
-        <!--<v-btn color="primary" flat>Login</v-btn>-->
+        <Modal v-if="!isLoggedIn" action="sign-in" />
+        <v-btn v-if="isLoggedIn" color="primary" flat @click="handleLogout">
+          {{ $t('main.logout') }}
+        </v-btn>
       </v-toolbar-items>
     </v-toolbar>
     <v-content>
@@ -51,6 +52,16 @@ export default {
       right: true,
       rightDrawer: false,
       title: 'Nasza Warszawa'
+    }
+  },
+  computed: {
+    isLoggedIn() {
+      return Boolean(this.$store.getters['auth/getUserId'])
+    }
+  },
+  methods: {
+    handleLogout() {
+      this.$store.dispatch('auth/logout')
     }
   }
 }

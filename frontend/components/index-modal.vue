@@ -5,7 +5,7 @@
         {{ action }}
       </v-btn>
     </template>
-    <v-card class="modal">
+    <v-card class="modal" @keyup.enter="sendForm">
       <v-card-title class="headline">
         <div v-if="!isFeedback">
           <v-btn flat color="blue" @click="isRegister = false">
@@ -34,6 +34,7 @@
           :rules="[rules.required, rules.password]"
           :validate-on-blur="true"
           required
+          type="password"
         />
         <v-textarea
           v-if="isFeedback"
@@ -47,6 +48,7 @@
           :label="$t('main.modal.password-repeat')"
           :rules="[rules.required, rules.password, rules.passwordRepeat]"
           :validate-on-blur="true"
+          type="password"
           required
         />
       </v-card-text>
@@ -94,7 +96,8 @@ export default {
   },
   methods: {
     sendForm() {
-      this.$store.dispatch('register', this.form)
+      const action = this.isRegister ? 'register' : 'login'
+      this.$store.dispatch('auth/authenticate', { action, ...this.form })
     }
   }
 }

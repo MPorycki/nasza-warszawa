@@ -2,6 +2,7 @@
   "main": {
     "register": "Register",
     "sign-in": "Sign-in",
+    "logout": "Logout",
     "modal": {
       "email": "Email",
       "email-label": "Enter your email here",

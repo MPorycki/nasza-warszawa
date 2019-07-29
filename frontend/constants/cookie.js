@@ -1,3 +1,4 @@
 export default {
-  auth: 'N_A'
+  session: 'N_S',
+  user: 'N_U'
 }
