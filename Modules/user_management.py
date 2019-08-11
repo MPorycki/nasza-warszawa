@@ -1,13 +1,13 @@
-import uuid
 import datetime
 import smtplib
 import ssl
+import uuid
 
 from passlib.hash import sha256_crypt
-from sqlalchemy.exc import InvalidRequestError, IntegrityError
+from flask
 
 from Models.user_management import UMAccounts, UMSentMessages, UMSessions
-from Models.db import session_scope, session
+from Models.db import session_scope
 
 
 def register_user(email, raw_password):
@@ -16,30 +16,23 @@ def register_user(email, raw_password):
     password = sha256_crypt.hash(raw_password)
     new_user = UMAccounts(id=user_id, email=email, hashed_password=password,
                           created_at=created_at)
-    session.add(new_user)
-    try:
-        session.commit()
-        new_session_id, user_id = login(email, raw_password)
-        message = "registered"
-    except (InvalidRequestError, IntegrityError) as e:
-        # Error thrown, when some of the db requirements are not met
-        session.rollback()
-        new_session_id, user_id = (None, None)
-        message = "email_already_in_db"
-    # session.close()
-    return new_session_id, user_id, message
+    with session_scope() as session:
+        session.add(new_user)
+    return login(email, raw_password)
 
 
 def login(email, raw_password):
-    encrypted_from_db = str(session.query(UMAccounts.hashed_password).filter(
-        UMAccounts.email == email).first()[0])
-    check = sha256_crypt.verify(raw_password, encrypted_from_db)
+    with session_scope() as session:
+        encrypted_from_db = str(session.query(UMAccounts.hashed_password).filter(
+            UMAccounts.email == email).first()[0])
     session_to_return = None
     user_id = None
     # TODO add passing through user id
-    if check:
+    # TODO Handle the errors that were removed from register_user
+    if sha256_crypt.verify(raw_password, encrypted_from_db):
         session_to_return = create_session_for_user(email)
-        user_id = session.query(UMAccounts).filter(UMAccounts.email == email).first().id
+        user_id = session.query(UMAccounts).filter(
+            UMAccounts.email == email).first().id
     return session_to_return, user_id
 
 
@@ -63,12 +56,14 @@ def send_recovery_email(email):
         server.sendmail(sender_email, email, message)
         response = 'email_sent'
         # Log the sending in the DB
-        account_id = session.query(UMAccounts).filter(UMAccounts.email == email).first().id
+        account_id = session.query(UMAccounts).filter(
+            UMAccounts.email == email).first().id
         id = uuid.uuid4().hex
         created_at = datetime.datetime.now()
         sending_log = UMSentMessages(um_accounts_id=account_id, id=id,
                                      message_type='password_reset',
-                                     message_body_plaintext=message, created_at=created_at)
+                                     message_body_plaintext=message,
+                                     created_at=created_at)
         session.add(sending_log)
         session.commit()
     except Exception as e:
@@ -91,7 +86,9 @@ def change_password(user_id, new_password):
 
 
 def create_session_for_user(email):
-    user_id = session.query(UMAccounts.id).filter(UMAccounts.email == email).first()[0]
+    user_id = \
+        session.query(UMAccounts.id).filter(UMAccounts.email == email).first()[
+            0]
     session_id = uuid.uuid4().hex
     created_at = str(datetime.datetime.now())
     try:
@@ -106,16 +103,17 @@ def create_session_for_user(email):
     return session_id
 
 
-def verify_session(session_id):
-    session_for_test_user = session.query(UMSessions).filter(
-        UMSessions.session_id == session_id).exists()
-    return session.query(session_for_test_user).scalar()
-    # TODO need to make this a decorator that checks the authorization header for session_id
+def session_exists(session_id, account_id):
+    with session_scope() as session:
+        return session.query(UMSessions).filter(
+            UMSessions.session_id == session_id,
+            UMSessions.um_accounts_id == account_id).exists()
 
 
 def logout(user_id):
     try:
-        session.query(UMSessions).filter(UMSessions.um_accounts_id == user_id).delete()
+        session.query(UMSessions).filter(
+            UMSessions.um_accounts_id == user_id).delete()
         session.commit()
     except Exception as e:
         return 'logout_unsuccessful'

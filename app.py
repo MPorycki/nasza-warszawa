@@ -64,12 +64,13 @@ class AccountLogin(Resource):
             email = request.form.get("email")
         except Exception as e:
             return make_response(e, 400)
+        # TODO add verify session decorator
         new_session_id, user_id = login(email, raw_password)
         if new_session_id:
             response = {"session_id": new_session_id, "user_id": user_id}
             return make_response(jsonify(response), 200)
         else:
-            return make_response("Wrong password", 400)
+            return make_response("Wrong password", 400) # differentiate errors
 
 
 api.add_resource(AccountLogin, "/account/login")
@@ -123,12 +124,7 @@ api.add_resource(Main, "/")
 class CreatePDF(Resource):
     @verify_session
     def get(self):
-        session_id = request.headers.get("session_id")
-        verification = verify_session(session_id)
-        if verification:
-            return jsonify(fetch_all_templates())
-        else:
-            return main()
+        return jsonify(fetch_all_templates())
 
     @verify_session
     def post(self):
