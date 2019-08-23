@@ -1,5 +1,6 @@
 venvnasza/
 .idea/ 
 __pycache__/ 
-Modules/__pycache__/user_management.cpython-37.pyc
+Modules/__pycache__/
 venv/
+Models/__pycache__/
