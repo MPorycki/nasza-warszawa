@@ -30,12 +30,12 @@ def register_user(email: str, raw_password: str):
     return login(email, raw_password)
 
 
-def login(email: str, raw_password: str):
+def login(email: str, raw_password: str) -> (str, str):
     """
     Log ins the user based on the email and password they provide
     :param email: email of the user
     :param raw_password:direct password inputted by the user into the form
-    :return:
+    :return: Session_id and the corresponding account_id or None, None if failed
     """
     with session_scope() as session:
         encrypted_from_db = str(
@@ -54,7 +54,7 @@ def login(email: str, raw_password: str):
     return None, None
 
 
-def create_session_for_user(account_id):
+def create_session_for_user(account_id: str) -> str:
     """
     Creates session for the given user
     :param account_id:
@@ -70,12 +70,14 @@ def create_session_for_user(account_id):
     return session_id
 
 
-def send_recovery_email(email):
+def send_recovery_email(email: str) -> str:
     """
     Sens an email to the user with a link to the recover password page.
     :param email: email of the user
     :return:
     """
+    if not user_with_given_email_exists(email):
+        return "user_does_not_exist"
     smtp_server = "smtp.gmail.com"
     port = 587
     sender_email = "poryckimarcin@gmail.com"
@@ -83,25 +85,40 @@ def send_recovery_email(email):
 
     context = ssl.create_default_context()
 
-    message = "Here's your recovery link!!"
-
-    response = "message_not_sent"
+    message = "Here's your recovery link!!"  # TODO make into a real link
     try:
         server = smtplib.SMTP(smtp_server, port)
-        server.ehlo()  # Can be omitted
         server.starttls(context=context)  # Secure the connection
-        server.ehlo()  # Can be omitted
         server.login(sender_email, password)
         server.sendmail(sender_email, email, message)
-        response = "email_sent"
+        log_sending(email, message, "password_reset")
+        return "email_sent"
     except Exception as e:
         print(e)
-    # Log the sending in the DB
-    log_sending(email, message, "password_reset")
-    return response
+        return "message_not_sent"
 
 
-def log_sending(email, message, send_event_type):
+def user_with_given_email_exists(email: str) -> bool:
+    """
+    Verifies whether the provided email belongs to an existing user
+    :param email: Provided email
+    :return: Boolean with the result of the check of email existence
+    """
+    with session_scope() as session:
+        return (
+            session.query(UMAccounts)
+            .filter(UMAccounts.email == email)
+            .exists()
+        )
+
+
+def log_sending(email: str, message: str, send_event_type: str):
+    """
+    Saves the log of sending a message in the db
+    :param email: Email of the user we had sent the email to
+    :param message: Body of the message
+    :param send_event_type: Type of sending event
+    """
     with session_scope() as session:
         account_id = (
             session.query(UMAccounts)
@@ -121,7 +138,13 @@ def log_sending(email, message, send_event_type):
         session.add(sending_log)
 
 
-def change_password(account_id, new_password):
+def change_password(account_id: str, new_password: str) -> str:
+    """
+    Changes the password for the user
+    :param account_id: user's account_id
+    :param new_password: user's new password
+    :return:
+    """
     with session_scope() as session:
         user = (
             session.query(UMAccounts)
@@ -134,7 +157,11 @@ def change_password(account_id, new_password):
     return "password_not_changed"
 
 
-def session_exists(session_id: str, account_id: str):
+def session_exists(session_id: str, account_id: str) -> bool:
+    """
+    Verifies whether a particular session exists for a particular user
+    :return: Boolean value confirming whether the session exists or not
+    """
     with session_scope() as session:
         return (
             session.query(UMSessions)
@@ -146,7 +173,7 @@ def session_exists(session_id: str, account_id: str):
         )
 
 
-def logout(session_id: str, account_id: str):
+def logout(session_id: str, account_id: str) -> str:
     """
     Logouts the user based on session_id and account_id
     :return: string with the information about the logout status

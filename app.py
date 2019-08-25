@@ -53,9 +53,9 @@ class AccountRegister(Resource):
         except Exception as e:
             print(e)
             return make_response("Not enough data provided", 400)
-        session_id, user_id = register_user(email, raw_password)
-        if session_id and user_id:
-            response = {"session_id": session_id, "user_id": user_id}
+        session_id, account_id = register_user(email, raw_password)
+        if session_id and account_id:
+            response = {"session_id": session_id, "account_id": account_id}
             return make_response(jsonify(response), 200)
         else:
             return make_response("registration_failed", 401)
@@ -72,12 +72,12 @@ class AccountLogin(Resource):
         except Exception as e:
             print(e)
             return make_response("Not enough data provided", 400)
-        new_session_id, user_id = login(email, raw_password)
+        new_session_id, account_id = login(email, raw_password)
         if new_session_id:
-            response = {"session_id": new_session_id, "user_id": user_id}
+            response = {"session_id": new_session_id, "account_id": account_id}
             return make_response(jsonify(response), 200)
         else:
-            return make_response("Wrong password", 400)  # differentiate errors
+            return make_response("Wrong password", 403)
 
 
 api.add_resource(AccountLogin, "/account/login")
@@ -86,18 +86,27 @@ api.add_resource(AccountLogin, "/account/login")
 class AccountResetPassword(Resource):
     def post(self):
         # Password recovery email sending
-        email = request.form.get("email")
+        try:
+            email = request.form.get("email")
+        except Exception as e:
+            print(e)
+            return make_response("no_email_provided", 400)
         confirmation = send_recovery_email(email)
-        return make_response(confirmation, 200)
+        if confirmation == "email_sent":
+            return make_response(confirmation, 200)
+        return make_response(confirmation, 500)
 
+    @verify_session
     def patch(self):
         # Password change handling
-        # TODO add some sort of security in here?
         new_password = request.form.get("new_password")
-        password_change = change_password(user_input, new_password)
+        account_id = request.headers.get("account_id")
+        password_change = change_password(account_id, new_password)
         if password_change == "password_changed":
             return make_response(password_change, 200)
-        else:
+        elif password_change == "user_does_not_exist":
+            return make_response(password_change, 403)
+        elif password_change == "message_not_sent":
             return make_response(password_change, 400)
 
 
@@ -108,9 +117,9 @@ class AccountLogout(Resource):
     @verify_session
     def delete(self):
         # Logout
-        user_id = request.headers.get("user_id")
+        account_id = request.headers.get("account_id")
         session_id = request.headers.get("session_id")
-        logout_result = logout(session_id, user_id)
+        logout_result = logout(session_id, account_id)
         if logout_result == "logout_successful":
             return make_response(logout_result, 200)
         elif logout_result == "logout_unsuccessful":
