@@ -4,6 +4,7 @@ import ssl
 import uuid
 
 from passlib.hash import sha256_crypt
+from sqlalchemy.exc import IntegrityError
 
 from Models.user_management import UMAccounts, UMSentMessages, UMSessions
 from Models.db import session_scope
@@ -25,8 +26,11 @@ def register_user(email: str, raw_password: str):
         hashed_password=password,
         created_at=created_at,
     )
-    with session_scope() as session:
-        session.add(new_user)
+    try:
+        with session_scope() as session:
+            session.add(new_user)
+    except IntegrityError:
+        return None, None
     return login(email, raw_password)
 
 
@@ -163,7 +167,7 @@ def session_exists(session_id: str, account_id: str) -> bool:
     :return: Boolean value confirming whether the session exists or not
     """
     with session_scope() as session:
-        return (
+        exists_object = (
             session.query(UMSessions)
             .filter(
                 UMSessions.session_id == session_id,
@@ -171,6 +175,7 @@ def session_exists(session_id: str, account_id: str) -> bool:
             )
             .exists()
         )
+        return session.query(exists_object).scalar()
 
 
 def logout(session_id: str, account_id: str) -> str:
