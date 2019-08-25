@@ -1,6 +1,6 @@
 from passlib.hash import sha256_crypt
 
-from Models.db import session
+from Models.db import session_scope
 from Models.user_management import UMAccounts, UMSessions, UMSentMessages
 from Modules.user_management import (
     register_user,
@@ -21,22 +21,29 @@ def test_can_register():
     # GIVEN
     test_email = "testinek@gmail.com"
     test_password = "123456789"
+    with session_scope() as session:
+        account = session.query(UMAccounts).filter(
+            UMAccounts.email == test_email
+        ).first()
+        session.query(UMSessions).filter(
+            UMSessions.um_accounts_id == account.id
+        ).delete()
+        session.query(UMAccounts).filter(
+            UMAccounts.email == test_email
+        ).delete()
 
     # WHEN
-    new_session_id, user_id, message = register_user(test_email, test_password)
+    new_session_id, account_id = register_user(test_email, test_password)
 
     # THEN
-    try:
-        assert message == "registered"
-    finally:
-        # CLEANUP
+    with session_scope() as session:
         session.query(UMSessions).filter(
             UMSessions.session_id == new_session_id
         ).delete()
         session.query(UMAccounts).filter(
             UMAccounts.email == test_email
         ).delete()
-        session.commit()
+        assert new_session_id is not None
 
 
 def test_cant_register_again_with_existing_mail():
@@ -44,16 +51,14 @@ def test_cant_register_again_with_existing_mail():
     test_email = "testinek@gmail.com"
     test_password = "123456789"
     # WHEN
-    new_session_id1, user_id1, message1 = register_user(
+    new_session_id1, user_id1= register_user(
         test_email, test_password
     )
-    new_session_id2, user_id2, message2 = register_user(
+    new_session_id2, user_id2 = register_user(
         test_email, test_password
     )
     # THEN
     try:
-        assert message1 == "registered"
-        assert message2 == "email_already_in_db"
         assert new_session_id1 is not None
         assert new_session_id2 is None
     finally:
